@@ -4,7 +4,8 @@ const Trade = require('../models/Trade');
 async function history(req, res, next) {
   try {
     const { limit = 20 } = req.query;
-    const trades = await Trade.find().sort({ timestamp: -1 }).limit(Math.min(Number(limit), 200));
+    const safeLimit = Math.min(Math.max(Number(limit) || 20, 1), 200);
+    const trades = await Trade.find().sort({ timestamp: -1 }).limit(safeLimit);
     res.status(200).json(trades);
   } catch (err) {
     next(err);

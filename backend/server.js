@@ -21,8 +21,13 @@ const tradeRoutes = require('./routes/trades');
 const dashboardRoutes = require('./routes/dashboard');
 const backtestRoutes = require('./routes/backtest');
 const settingsRoutes = require('./routes/settings');
+const { generalLimiter } = require('./middleware/rateLimit');
 
 const app = express();
+
+// Render sits behind a reverse proxy — without this, rate limiting and any
+// IP-based logic would see the proxy's IP for every client, not the real one.
+app.set('trust proxy', 1);
 
 const allowedOrigins = (process.env.CLIENT_ORIGIN || '*')
   .split(',')
@@ -44,6 +49,8 @@ app.use(bodyParser.json());
 app.get('/', (req, res) => {
   res.json({ service: 'Deriv Analysis Tool API', status: 'running' });
 });
+
+app.use('/api', generalLimiter);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/market', marketRoutes);
