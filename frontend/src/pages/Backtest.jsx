@@ -46,6 +46,11 @@ export default function Backtest() {
           position at a time per symbol, identical P&L math to live trading. Limited to Deriv's max of 1,000
           candles per request (~2 days of 3-minute data).
         </p>
+        <p className="text-sm mt-1" style={{ color: 'var(--status-warning)' }}>
+          Small sample size: with only ~2 days of data, a single run typically produces 20-40 trades — not
+          enough to treat any one win rate as statistically reliable. Run it across several symbols and over
+          time before trusting a number here.
+        </p>
       </div>
 
       <div

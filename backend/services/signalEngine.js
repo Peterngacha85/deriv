@@ -59,9 +59,18 @@ function generateSignal(candles, { confirmThreshold = 65 } = {}) {
 
   const confidence = Math.round(((directionScore + volatilityScore + momentumScore) / 3) * 100);
 
+  // Require genuine agreement between all three direction components (not
+  // just an averaged score crossing a threshold) — a strict RSI band and a
+  // MACD noise floor so a near-zero histogram flip doesn't count as
+  // "confirmation." Weighted averaging let conflicting indicators cancel
+  // into a borderline score that still traded; this cuts that out.
+  const macdNoiseFloor = currentPrice * 0.0002;
+  const agreesUp = maFast > maSlow && rsiValue > 55 && macdHistogram > macdNoiseFloor;
+  const agreesDown = maFast < maSlow && rsiValue < 45 && macdHistogram < -macdNoiseFloor;
+
   let type = 'HOLD';
-  if (directionScore > 0.6 && confidence > confirmThreshold) type = 'BUY';
-  else if (directionScore < 0.4 && confidence > confirmThreshold) type = 'SELL';
+  if (agreesUp && confidence > confirmThreshold) type = 'BUY';
+  else if (agreesDown && confidence > confirmThreshold) type = 'SELL';
 
   const stopLoss = type === 'SELL' ? currentPrice + atrValue : currentPrice - atrValue;
   const takeProfit = type === 'SELL' ? currentPrice - atrValue * 1.5 : currentPrice + atrValue * 1.5;
