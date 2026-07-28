@@ -21,8 +21,24 @@ const dashboardRoutes = require('./routes/dashboard');
 
 const app = express();
 
+const allowedOrigins = (process.env.CLIENT_ORIGIN || '*')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || '*' }));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow no-Origin requests (curl, server-to-server) and anything on the allowlist.
+      if (allowedOrigins.includes('*') || !origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} is not allowed by CORS`));
+      }
+    }
+  })
+);
 app.use(bodyParser.json());
 
 app.get('/', (req, res) => {
