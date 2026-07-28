@@ -18,6 +18,7 @@ const marketRoutes = require('./routes/market');
 const signalRoutes = require('./routes/signals');
 const tradeRoutes = require('./routes/trades');
 const dashboardRoutes = require('./routes/dashboard');
+const backtestRoutes = require('./routes/backtest');
 
 const app = express();
 
@@ -47,6 +48,7 @@ app.use('/api/market', marketRoutes);
 app.use('/api/signals', signalRoutes);
 app.use('/api/trades', tradeRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/backtest', backtestRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

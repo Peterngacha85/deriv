@@ -2,14 +2,11 @@ const EventEmitter = require('events');
 const Signal = require('../models/Signal');
 const Trade = require('../models/Trade');
 const derivService = require('./derivService');
+const { calculatePnl } = require('../utils/pnl');
 const logger = require('../utils/logger');
 
-// Nominal dollars risked per trade (lost in full if the stop is hit) — this
-// is a simulated/paper-trade tracker (it watches whether live price would
-// have hit SL or TP), not real order placement on Deriv. P&L is expressed
-// as a fraction of this risk amount, scaled by the trade's R:R ratio, so
-// it stays meaningful regardless of a symbol's absolute price scale.
-const NOMINAL_RISK = 10;
+// This is a simulated/paper-trade tracker (it watches whether live price
+// would have hit SL or TP), not real order placement on Deriv.
 const MAX_TRADE_DURATION_MS = 30 * 60 * 1000; // force-resolve after 30 minutes
 
 class TradeTracker extends EventEmitter {
@@ -132,22 +129,15 @@ class TradeTracker extends EventEmitter {
   }
 
   async _resolve(position, exitPrice, result, { partial = false } = {}) {
-    const direction = position.type === 'BUY' ? 1 : -1;
-    const distanceToStop = Math.abs(position.entryPrice - position.stopLoss) || 1;
-    const distanceToTarget = Math.abs(position.takeProfit - position.entryPrice);
-    const rewardMultiple = distanceToTarget / distanceToStop;
-
-    let pnl;
-    if (!partial) {
-      // A clean SL/TP hit — full risk lost, or full reward per the trade's R:R ratio
-      pnl = result === 'WON' ? NOMINAL_RISK * rewardMultiple : -NOMINAL_RISK;
-    } else {
-      // Expired without hitting either level — scale by how far price actually moved
-      const priceMoved = (exitPrice - position.entryPrice) * direction;
-      const riskMultiple = Math.max(-1, Math.min(rewardMultiple, priceMoved / distanceToStop));
-      pnl = NOMINAL_RISK * riskMultiple;
-    }
-    pnl = Math.round(pnl * 100) / 100;
+    const pnl = calculatePnl({
+      type: position.type,
+      entryPrice: position.entryPrice,
+      stopLoss: position.stopLoss,
+      takeProfit: position.takeProfit,
+      exitPrice,
+      result,
+      partial
+    });
 
     const durationMs = Date.now() - new Date(position.openedAt).getTime();
     const durationMin = Math.max(1, Math.round(durationMs / 60000));
