@@ -42,11 +42,6 @@ app.get('/', (req, res) => {
   res.json({ service: 'Deriv Analysis Tool API', status: 'running' });
 });
 
-// Temporary — remove once CORS is confirmed working in production
-app.get('/api/debug/cors', (req, res) => {
-  res.json({ allowedOrigins, receivedOrigin: req.headers.origin || null });
-});
-
 app.use('/api/auth', authRoutes);
 app.use('/api/market', marketRoutes);
 app.use('/api/signals', signalRoutes);
