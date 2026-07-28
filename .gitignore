@@ -1,0 +1,13 @@
+node_modules/
+dist/
+*.log
+
+# Local tooling / IDE config — not part of the deployed app
+.claude/
+
+# Business documents — not project source
+*.pdf
+
+# Environment secrets (each app also has its own .gitignore, this is a backstop)
+.env
+.env.local
