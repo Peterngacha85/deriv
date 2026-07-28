@@ -70,15 +70,43 @@ class DerivService extends EventEmitter {
     return this.public.send({ ticks: symbol, subscribe: 1 });
   }
 
-  getCandles(symbol, { count = 100, granularity = 180 } = {}) {
+  getCandles(symbol, { count = 100, granularity = 180, end = 'latest' } = {}) {
     return this.public.request({
       ticks_history: symbol,
       adjust_start_time: 1,
       count,
-      end: 'latest',
+      end,
       style: 'candles',
       granularity
     });
+  }
+
+  /**
+   * Fetches more history than a single ticks_history call allows (Deriv caps
+   * one request at 1000 candles) by paging backwards in time and stitching
+   * the results together. Verified against live data to produce no gaps or
+   * overlaps between pages.
+   */
+  async getExtendedCandles(symbol, { days = 2, granularity = 180, maxRequests = 20 } = {}) {
+    const targetCount = Math.ceil((days * 24 * 3600) / granularity);
+    let allCandles = [];
+    let end = 'latest';
+
+    for (let i = 0; i < maxRequests && allCandles.length < targetCount; i++) {
+      const { candles } = await this.getCandles(symbol, { count: 1000, granularity, end });
+      if (!candles || candles.length === 0) break;
+
+      allCandles = [...candles, ...allCandles];
+      end = candles[0].epoch - granularity;
+
+      // Deriv returned fewer than requested — we've hit the start of available history
+      if (candles.length < 1000) break;
+    }
+
+    if (allCandles.length > targetCount) {
+      allCandles = allCandles.slice(allCandles.length - targetCount);
+    }
+    return allCandles;
   }
 
   getLatestTick(symbol) {

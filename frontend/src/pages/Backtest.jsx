@@ -8,6 +8,7 @@ export default function Backtest() {
   const { snapshot } = useMarket();
   const symbols = snapshot?.symbols || [];
   const [symbol, setSymbol] = useState('');
+  const [days, setDays] = useState(7);
   const [confirmThreshold, setConfirmThreshold] = useState(65);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState(null);
@@ -26,7 +27,7 @@ export default function Backtest() {
     setRunning(true);
     setError(null);
     try {
-      const data = await runBacktest({ symbol, confirmThreshold: Number(confirmThreshold) });
+      const data = await runBacktest({ symbol, days: Number(days), confirmThreshold: Number(confirmThreshold) });
       setResult(data);
     } catch (err) {
       setError(err.response?.data?.error || err.message);
@@ -42,14 +43,14 @@ export default function Backtest() {
           Backtest
         </h1>
         <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          Replays the same signal engine used live against recent historical candles — no lookahead, one
-          position at a time per symbol, identical P&L math to live trading. Limited to Deriv's max of 1,000
-          candles per request (~2 days of 3-minute data).
+          Replays the same signal engine used live against historical candles — no lookahead, one position at
+          a time per symbol, identical P&L math to live trading. Pulls multiple pages from Deriv (1,000
+          candles each) to cover longer ranges, up to 21 days.
         </p>
         <p className="text-sm mt-1" style={{ color: 'var(--status-warning)' }}>
-          Small sample size: with only ~2 days of data, a single run typically produces 20-40 trades — not
-          enough to treat any one win rate as statistically reliable. Run it across several symbols and over
-          time before trusting a number here.
+          More data means a more trustworthy number: a 2-day run typically produces only 20-40 trades, too
+          few to treat any single win rate as reliable. Prefer 1-2+ weeks where possible, and compare across
+          symbols rather than trusting one run.
         </p>
       </div>
 
@@ -72,6 +73,23 @@ export default function Backtest() {
                 {s}
               </option>
             ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+            Data range
+          </label>
+          <select
+            value={days}
+            onChange={(e) => setDays(e.target.value)}
+            className="px-3 py-2 rounded-lg text-sm"
+            style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+          >
+            <option value={2}>2 days</option>
+            <option value={7}>1 week</option>
+            <option value={14}>2 weeks</option>
+            <option value={21}>3 weeks</option>
           </select>
         </div>
 

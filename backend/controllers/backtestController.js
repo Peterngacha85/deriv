@@ -2,17 +2,17 @@ const Backtest = require('../models/Backtest');
 const derivService = require('../services/derivService');
 const { runBacktest } = require('../services/backtestEngine');
 
-const MAX_CANDLES = 1000; // Deriv's actual cap per ticks_history request (~2 days of 3-min candles)
 const GRANULARITY_SECONDS = 180;
+const MAX_DAYS = 21; // keeps request count (and run time) reasonable — each extra ~2 days is one more paginated request
 
-// POST /api/backtest/run  { symbol, count?, confirmThreshold? }
+// POST /api/backtest/run  { symbol, days?, confirmThreshold? }
 async function run(req, res, next) {
   try {
-    const { symbol = 'R_10', count = MAX_CANDLES, confirmThreshold = 65 } = req.body;
-    const candleCount = Math.min(Number(count) || MAX_CANDLES, MAX_CANDLES);
+    const { symbol = 'R_10', days = 2, confirmThreshold = 65 } = req.body;
+    const requestedDays = Math.min(Math.max(Number(days) || 2, 1), MAX_DAYS);
 
-    const { candles } = await derivService.getCandles(symbol, {
-      count: candleCount,
+    const candles = await derivService.getExtendedCandles(symbol, {
+      days: requestedDays,
       granularity: GRANULARITY_SECONDS
     });
 
@@ -33,7 +33,7 @@ async function run(req, res, next) {
       report: result.recommendation
     });
 
-    res.status(201).json({ ...result, _id: saved._id, symbol, maxCandlesAvailable: MAX_CANDLES });
+    res.status(201).json({ ...result, _id: saved._id, symbol, requestedDays, maxDays: MAX_DAYS });
   } catch (err) {
     next(err);
   }

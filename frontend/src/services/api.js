@@ -17,7 +17,8 @@ export const getTradeHistory = (params = {}) => client.get('/trades/history', { 
 
 export const getTradeStats = () => client.get('/trades/stats').then((r) => r.data);
 
-export const runBacktest = (params) => client.post('/backtest/run', params).then((r) => r.data);
+// Longer timeout: multi-week runs page through several sequential Deriv requests
+export const runBacktest = (params) => client.post('/backtest/run', params, { timeout: 60000 }).then((r) => r.data);
 
 export const getBacktestHistory = (params = {}) => client.get('/backtest/history', { params }).then((r) => r.data);
 
