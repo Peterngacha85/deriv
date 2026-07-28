@@ -31,11 +31,8 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // Allow no-Origin requests (curl, server-to-server) and anything on the allowlist.
-      if (allowedOrigins.includes('*') || !origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`Origin ${origin} is not allowed by CORS`));
-      }
+      const allowed = allowedOrigins.includes('*') || !origin || allowedOrigins.includes(origin);
+      callback(null, allowed);
     }
   })
 );
@@ -43,6 +40,11 @@ app.use(bodyParser.json());
 
 app.get('/', (req, res) => {
   res.json({ service: 'Deriv Analysis Tool API', status: 'running' });
+});
+
+// Temporary — remove once CORS is confirmed working in production
+app.get('/api/debug/cors', (req, res) => {
+  res.json({ allowedOrigins, receivedOrigin: req.headers.origin || null });
 });
 
 app.use('/api/auth', authRoutes);
