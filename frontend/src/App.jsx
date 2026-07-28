@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MarketProvider } from './context/MarketContext';
 import Header from './layout/Header';
 import Sidebar from './layout/Sidebar';
+import BottomNav from './layout/BottomNav';
+import NotificationCenter from './components/NotificationCenter';
 import Dashboard from './pages/Dashboard';
 import SignalHistory from './pages/SignalHistory';
 import TradeHistory from './pages/TradeHistory';
@@ -14,9 +16,9 @@ export default function App() {
       <BrowserRouter>
         <div className="min-h-screen flex flex-col" style={{ background: 'var(--surface-2)' }}>
           <Header />
-          <div className="flex flex-1">
+          <div className="flex flex-1 min-w-0">
             <Sidebar />
-            <main className="flex-1">
+            <main className="flex-1 min-w-0 pb-16 md:pb-0">
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/signals" element={<SignalHistory />} />
@@ -26,6 +28,8 @@ export default function App() {
               </Routes>
             </main>
           </div>
+          <BottomNav />
+          <NotificationCenter />
         </div>
       </BrowserRouter>
     </MarketProvider>
