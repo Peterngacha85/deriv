@@ -52,6 +52,36 @@ class TradeTracker extends EventEmitter {
     return (this.openPositions.get(symbol) || []).length > 0;
   }
 
+  /**
+   * Rebuilds in-memory open positions from the database — must be called once
+   * at startup. Without this, a restart forgets every open position (the guard
+   * in openFromSignal would then think a symbol is free and stack duplicate
+   * trades on top of ones that are still genuinely open).
+   */
+  async rehydrate() {
+    const openTrades = await Trade.find({ result: 'OPEN' }).populate('signalId');
+    let count = 0;
+    for (const trade of openTrades) {
+      const signal = trade.signalId; // populated Signal doc, or null if it was ever deleted
+      if (!signal) continue;
+
+      const position = {
+        signalId: signal._id,
+        symbol: trade.symbol,
+        type: signal.type,
+        entryPrice: trade.entryPrice,
+        stopLoss: signal.stopLoss,
+        takeProfit: signal.takeProfit,
+        openedAt: trade.timestamp
+      };
+      const list = this.openPositions.get(trade.symbol) || [];
+      list.push(position);
+      this.openPositions.set(trade.symbol, list);
+      count++;
+    }
+    if (count > 0) logger.info(`Rehydrated ${count} open position(s) from the database`);
+  }
+
   /** Call on every live tick — resolves any open position on that symbol whose SL/TP was hit. */
   async onTick(tick) {
     const list = this.openPositions.get(tick.symbol);
