@@ -10,6 +10,7 @@ const derivConfig = require('./config/deriv');
 const derivService = require('./services/derivService');
 const signalScheduler = require('./services/signalScheduler');
 const tradeTracker = require('./services/tradeTracker');
+const settingsService = require('./services/settingsService');
 const logger = require('./utils/logger');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
@@ -19,6 +20,7 @@ const signalRoutes = require('./routes/signals');
 const tradeRoutes = require('./routes/trades');
 const dashboardRoutes = require('./routes/dashboard');
 const backtestRoutes = require('./routes/backtest');
+const settingsRoutes = require('./routes/settings');
 
 const app = express();
 
@@ -49,6 +51,7 @@ app.use('/api/signals', signalRoutes);
 app.use('/api/trades', tradeRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/backtest', backtestRoutes);
+app.use('/api/settings', settingsRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
@@ -57,6 +60,7 @@ const PORT = process.env.PORT || 5000;
 
 async function start() {
   await connectDB();
+  await settingsService.load();
   await tradeTracker.rehydrate();
 
   derivService.connectPublic();

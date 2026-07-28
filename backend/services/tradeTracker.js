@@ -2,7 +2,8 @@ const EventEmitter = require('events');
 const Signal = require('../models/Signal');
 const Trade = require('../models/Trade');
 const derivService = require('./derivService');
-const { calculatePnl } = require('../utils/pnl');
+const { calculatePnl, riskAmountFromPercentage } = require('../utils/pnl');
+const settingsService = require('./settingsService');
 const logger = require('../utils/logger');
 
 // This is a simulated/paper-trade tracker (it watches whether live price
@@ -47,6 +48,12 @@ class TradeTracker extends EventEmitter {
 
   hasOpenPosition(symbol) {
     return (this.openPositions.get(symbol) || []).length > 0;
+  }
+
+  todaysTradeCount() {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    return Trade.countDocuments({ timestamp: { $gte: startOfDay } });
   }
 
   /**
@@ -129,15 +136,25 @@ class TradeTracker extends EventEmitter {
   }
 
   async _resolve(position, exitPrice, result, { partial = false } = {}) {
-    const pnl = calculatePnl({
+    const { riskPercentage, slippagePercentage, commissionPercentage } = settingsService.get();
+    const riskAmount = riskAmountFromPercentage(riskPercentage);
+
+    let pnl = calculatePnl({
       type: position.type,
       entryPrice: position.entryPrice,
       stopLoss: position.stopLoss,
       takeProfit: position.takeProfit,
       exitPrice,
       result,
-      partial
+      partial,
+      riskAmount
     });
+
+    // Slippage + commission apply to live trades only — the spec is explicit
+    // that backtest results don't include them, which is why live win rate
+    // running below backtest is expected, not a bug.
+    const frictionCost = riskAmount * ((slippagePercentage + commissionPercentage) / 100);
+    pnl = Math.round((pnl - frictionCost) * 100) / 100;
 
     const durationMs = Date.now() - new Date(position.openedAt).getTime();
     const durationMin = Math.max(1, Math.round(durationMs / 60000));

@@ -22,4 +22,8 @@ export const runBacktest = (params) => client.post('/backtest/run', params, { ti
 
 export const getBacktestHistory = (params = {}) => client.get('/backtest/history', { params }).then((r) => r.data);
 
+export const getSettings = () => client.get('/settings').then((r) => r.data);
+
+export const updateSettings = (patch) => client.put('/settings', patch).then((r) => r.data);
+
 export default client;

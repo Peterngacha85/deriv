@@ -2,6 +2,7 @@ const EventEmitter = require('events');
 const derivService = require('./derivService');
 const volatilityAnalyzer = require('./volatilityAnalyzer');
 const tradeTracker = require('./tradeTracker');
+const settingsService = require('./settingsService');
 const { generateSignal } = require('./signalEngine');
 const { analyzeDigits } = require('./digitAnalyzer');
 const Signal = require('../models/Signal');
@@ -19,9 +20,8 @@ class SignalScheduler extends EventEmitter {
     this.timer = null;
   }
 
-  start(symbols, { confirmThreshold = 65 } = {}) {
+  start(symbols) {
     this.symbols = symbols;
-    this.confirmThreshold = confirmThreshold;
     this._tick(); // run once immediately rather than waiting a full interval
     this.timer = setInterval(() => this._tick(), EVALUATE_INTERVAL_MS);
   }
@@ -61,7 +61,8 @@ class SignalScheduler extends EventEmitter {
     );
     this.latestDigits.set(symbol, digitAnalysis);
 
-    const signal = generateSignal(candles, { confirmThreshold: this.confirmThreshold });
+    const { confirmThreshold } = settingsService.get();
+    const signal = generateSignal(candles, { confirmThreshold });
     if (!signal) return;
 
     this.latestSignals.set(symbol, { symbol, ...signal });
@@ -86,9 +87,13 @@ class SignalScheduler extends EventEmitter {
 
     // Only act on a fresh BUY/SELL if this symbol doesn't already have an
     // open simulated position — avoids stacking a new trade every cycle
-    // while the same setup is still playing out.
+    // while the same setup is still playing out — and if today's trade
+    // count hasn't already hit the configured daily cap.
     if (signal.type !== 'HOLD' && !tradeTracker.hasOpenPosition(symbol)) {
-      await tradeTracker.openFromSignal(signalDoc);
+      const { maxTradesPerDay } = settingsService.get();
+      if (await tradeTracker.todaysTradeCount() < maxTradesPerDay) {
+        await tradeTracker.openFromSignal(signalDoc);
+      }
     }
   }
 
