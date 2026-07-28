@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: deriv-analysis-backend
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DERIV_WS_URL
+        value: wss://api.derivws.com/trading/v1/options/ws/public
+      - key: DERIV_ACCOUNT_TYPE
+        value: real
+      - key: MONGO_URI
+        sync: false
+      - key: DERIV_APP_ID
+        sync: false
+      - key: DERIV_API_TOKEN
+        sync: false
+      - key: DERIV_CLIENT_EMAIL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: TOKEN_ENCRYPTION_KEY
+        sync: false
+      - key: CLIENT_ORIGIN
+        sync: false
