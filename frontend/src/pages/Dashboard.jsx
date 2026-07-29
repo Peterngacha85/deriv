@@ -55,7 +55,7 @@ export default function Dashboard() {
     );
   }
 
-  if (error) {
+  if (error && !snapshot) {
     return (
       <div className="p-8 text-sm" style={{ color: 'var(--status-critical)' }}>
         Could not reach the backend: {error}
@@ -67,6 +67,14 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 flex flex-col gap-8 max-w-6xl mx-auto w-full">
+      {error && (
+        <div
+          className="text-sm rounded-lg px-3 py-2.5"
+          style={{ color: 'var(--status-warning)', background: 'color-mix(in srgb, var(--status-warning) 10%, transparent)' }}
+        >
+          Having trouble reaching the backend — showing the last known data. Retrying…
+        </div>
+      )}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatTile label="Symbols tracked" value={symbols.length} icon="🌐" iconColor="var(--series-blue)" />
         <StatTile label="Total trades" value={tradeStats?.totalTrades ?? 0} icon="🔁" iconColor="var(--series-violet)" />
