@@ -3,6 +3,14 @@ const { calculatePnl } = require('../utils/pnl');
 
 const MIN_HISTORY_CANDLES = 51; // matches signalEngine's MA(50) requirement
 
+// Matches signalScheduler's CANDLE_COUNT — live evaluations only ever see the
+// last 100 candles, never full history-to-date. Using the same fixed window
+// here keeps backtest results genuinely representative of live behavior,
+// and (as a side effect) turns what was an O(n^2) full-history recompute at
+// every step into an O(n) walk — a 21-day backtest went from ~146s in
+// production to a few seconds after this change.
+const EVAL_WINDOW_CANDLES = 100;
+
 /**
  * Replays a symbol's own signal engine over historical candles, one candle
  * at a time, using only data available up to that point (no lookahead) —
@@ -32,7 +40,7 @@ function runBacktest(candles, { confirmThreshold = 65 } = {}) {
       continue; // a candle that closes a position doesn't also open a new one
     }
 
-    const windowCandles = candles.slice(0, i + 1);
+    const windowCandles = candles.slice(Math.max(0, i + 1 - EVAL_WINDOW_CANDLES), i + 1);
     const signal = generateSignal(windowCandles, { confirmThreshold });
     if (signal && signal.type !== 'HOLD') {
       openPosition = {
