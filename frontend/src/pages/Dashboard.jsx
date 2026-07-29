@@ -6,6 +6,7 @@ import SignalCard from '../components/SignalCard';
 import VolatilityCard from '../components/VolatilityCard';
 import WinRateMeter from '../components/WinRateMeter';
 import DigitChart from '../components/DigitChart';
+import DigitFace from '../components/DigitFace';
 import PriceChart from '../components/PriceChart';
 import TradeTable from '../components/TradeTable';
 
@@ -137,7 +138,10 @@ export default function Dashboard() {
             Digit analysis — {selectedSymbol}
           </h2>
           <div className="rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}>
-            <DigitChart analysis={digits} />
+            <DigitFace analysis={digits} symbol={selectedSymbol} />
+            <div className="pt-2 mt-2" style={{ borderTop: '1px solid var(--border)' }}>
+              <DigitChart analysis={digits} />
+            </div>
           </div>
         </div>
       </section>
