@@ -162,8 +162,10 @@ export default function Backtest() {
             <StatTile label="Max drawdown" value={`-${result.maxDrawdown.toFixed(2)}`} sublabel=" " />
             <StatTile
               label="Data range"
-              value={new Date(result.dataRange.from).toLocaleDateString()}
-              sublabel={`to ${new Date(result.dataRange.to).toLocaleDateString()}`}
+              value={`${Math.round((new Date(result.dataRange.to) - new Date(result.dataRange.from)) / 86400000)} days`}
+              sublabel={`${new Date(result.dataRange.from).toLocaleDateString()} – ${new Date(result.dataRange.to).toLocaleDateString()}`}
+              icon="📅"
+              iconColor="var(--series-aqua)"
             />
           </section>
 
