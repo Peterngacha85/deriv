@@ -63,7 +63,15 @@ export function MarketProvider({ children }) {
 
     async function poll() {
       try {
-        const data = await getDashboardSnapshot();
+        let data;
+        try {
+          data = await getDashboardSnapshot();
+        } catch (firstErr) {
+          // A single failed request is often just a stale/closed keep-alive
+          // connection on the hosting provider's side — retry once before
+          // surfacing an error, so a transient blip doesn't flash the UI.
+          data = await getDashboardSnapshot();
+        }
         if (!cancelled) {
           // Skip alerting on the very first snapshot — everything would look "new"
           // against empty tracking maps, flooding the UI on page load.
