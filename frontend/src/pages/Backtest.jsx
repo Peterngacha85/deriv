@@ -4,13 +4,18 @@ import { runBacktest, getBacktestHistory } from '../services/api';
 import StatTile from '../components/StatTile';
 import EquityCurve from '../components/EquityCurve';
 
+// Rough estimates from measured production timing — a little generous so the
+// countdown rarely hits zero before the real result lands.
+const ESTIMATED_SECONDS = { 2: 5, 7: 7, 14: 9, 21: 11 };
+
 export default function Backtest() {
   const { snapshot } = useMarket();
   const symbols = snapshot?.symbols || [];
   const [symbol, setSymbol] = useState('');
-  const [days, setDays] = useState(7);
+  const [days, setDays] = useState(21);
   const [confirmThreshold, setConfirmThreshold] = useState(65);
   const [running, setRunning] = useState(false);
+  const [countdown, setCountdown] = useState(null);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
@@ -23,8 +28,17 @@ export default function Backtest() {
     getBacktestHistory({ limit: 10 }).then(setHistory).catch(() => {});
   }, [result]);
 
+  useEffect(() => {
+    if (!running) return undefined;
+    const timer = setInterval(() => {
+      setCountdown((prev) => (prev === null ? prev : Math.max(prev - 1, 0)));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [running]);
+
   async function handleRun() {
     setRunning(true);
+    setCountdown(ESTIMATED_SECONDS[Number(days)] ?? 10);
     setError(null);
     try {
       const data = await runBacktest({ symbol, days: Number(days), confirmThreshold: Number(confirmThreshold) });
@@ -33,6 +47,7 @@ export default function Backtest() {
       setError(err.response?.data?.error || err.message);
     } finally {
       setRunning(false);
+      setCountdown(null);
     }
   }
 
@@ -43,15 +58,17 @@ export default function Backtest() {
           Backtest
         </h1>
         <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          Replays the same signal engine used live against historical candles — no lookahead, one position at
-          a time per symbol, identical P&L math to live trading. Pulls multiple pages from Deriv (1,000
-          candles each) to cover longer ranges, up to 21 days.
+          This replays the exact same signal engine used live, against real historical price data, to show
+          you how the strategy would have performed.
         </p>
-        <p className="text-sm mt-1" style={{ color: 'var(--status-warning)' }}>
-          More data means a more trustworthy number: a 2-day run typically produces only 20-40 trades, too
-          few to treat any single win rate as reliable. Prefer 1-2+ weeks where possible, and compare across
-          symbols rather than trusting one run.
-        </p>
+        <div
+          className="text-sm mt-2 rounded-lg px-3 py-2.5"
+          style={{ color: 'var(--status-warning)', background: 'color-mix(in srgb, var(--status-warning) 10%, transparent)' }}
+        >
+          <b>For an accurate result, use 3 weeks (the maximum).</b> A short 2-day test only sees 20-40 trades
+          — too few to trust. 3 weeks gives 150+ trades, which is what makes the win rate number believable.
+          Always prefer the longest range available.
+        </div>
       </div>
 
       <div
@@ -111,10 +128,10 @@ export default function Backtest() {
         <button
           onClick={handleRun}
           disabled={running || !symbol}
-          className="px-4 py-2 rounded-full text-sm font-medium"
-          style={{ background: 'var(--brand)', color: '#fff', opacity: running ? 0.6 : 1 }}
+          className="px-4 py-2 rounded-full text-sm font-medium tabular"
+          style={{ background: 'var(--brand)', color: '#fff', opacity: running ? 0.75 : 1, minWidth: '150px' }}
         >
-          {running ? 'Running…' : 'Run backtest'}
+          {running ? (countdown > 0 ? `Running… ~${countdown}s` : 'Almost done…') : 'Run backtest'}
         </button>
       </div>
 
