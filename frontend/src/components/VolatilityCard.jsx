@@ -16,12 +16,11 @@ export default function VolatilityCard({ snapshot }) {
 
   return (
     <div
-      className="rounded-xl p-3 flex items-center justify-between"
+      className="card-hover rounded-xl p-3 flex items-center justify-between"
       style={{
         background: accent.wash,
         border: '1px solid var(--border)',
-        borderLeft: `4px solid ${accent.border}`,
-        boxShadow: 'var(--shadow-card)'
+        borderLeft: `4px solid ${accent.border}`
       }}
     >
       <div className="flex flex-col gap-0.5">

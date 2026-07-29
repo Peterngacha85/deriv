@@ -1,4 +1,8 @@
-const RESULT_COLOR = { WON: 'var(--status-good)', LOST: 'var(--status-critical)', OPEN: 'var(--text-muted)' };
+const RESULT_STYLE = {
+  WON: { color: 'var(--status-good)', bg: 'color-mix(in srgb, var(--status-good) 14%, transparent)' },
+  LOST: { color: 'var(--status-critical)', bg: 'color-mix(in srgb, var(--status-critical) 14%, transparent)' },
+  OPEN: { color: 'var(--text-muted)', bg: 'var(--surface-2)' }
+};
 
 function formatTime(iso) {
   return new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -27,28 +31,40 @@ export default function TradeTable({ trades }) {
           </tr>
         </thead>
         <tbody>
-          {trades.map((t) => (
-            <tr key={t._id} style={{ borderBottom: '1px solid var(--border)' }}>
-              <td className="py-2" style={{ color: 'var(--text-secondary)' }}>
-                {formatTime(t.timestamp)}
-              </td>
-              <td className="py-2" style={{ color: 'var(--text-primary)' }}>
-                {t.symbol}
-              </td>
-              <td className="py-2" style={{ color: 'var(--text-secondary)' }}>
-                {t.entryPrice}
-              </td>
-              <td className="py-2" style={{ color: 'var(--text-secondary)' }}>
-                {t.exitPrice ?? '—'}
-              </td>
-              <td className="py-2" style={{ color: t.pnl >= 0 ? 'var(--status-good)' : 'var(--status-critical)' }}>
-                {t.pnl !== undefined && t.pnl !== null ? t.pnl.toFixed(2) : '—'}
-              </td>
-              <td className="py-2">
-                <span style={{ color: RESULT_COLOR[t.result] || 'var(--text-muted)' }}>{t.result}</span>
-              </td>
-            </tr>
-          ))}
+          {trades.map((t, i) => {
+            const resultStyle = RESULT_STYLE[t.result] || RESULT_STYLE.OPEN;
+            return (
+              <tr
+                key={t._id}
+                className="table-row-hover"
+                style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 1 ? 'var(--surface-2)' : 'transparent' }}
+              >
+                <td className="py-2 px-2" style={{ color: 'var(--text-secondary)' }}>
+                  {formatTime(t.timestamp)}
+                </td>
+                <td className="py-2 px-2 font-medium" style={{ color: 'var(--text-primary)' }}>
+                  {t.symbol}
+                </td>
+                <td className="py-2 px-2" style={{ color: 'var(--text-secondary)' }}>
+                  {t.entryPrice}
+                </td>
+                <td className="py-2 px-2" style={{ color: 'var(--text-secondary)' }}>
+                  {t.exitPrice ?? '—'}
+                </td>
+                <td className="py-2 px-2 font-medium" style={{ color: t.pnl >= 0 ? 'var(--status-good)' : 'var(--status-critical)' }}>
+                  {t.pnl !== undefined && t.pnl !== null ? t.pnl.toFixed(2) : '—'}
+                </td>
+                <td className="py-2 px-2">
+                  <span
+                    className="px-2 py-0.5 rounded-full text-xs font-semibold"
+                    style={{ color: resultStyle.color, background: resultStyle.bg }}
+                  >
+                    {t.result}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

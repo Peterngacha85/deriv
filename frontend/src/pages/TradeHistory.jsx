@@ -25,10 +25,21 @@ export default function TradeHistory() {
 
       {stats && (
         <section className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <StatTile label="Total trades" value={stats.totalTrades} />
-          <StatTile label="Win rate" value={`${stats.winRate}%`} />
-          <StatTile label="Current streak" value={`${stats.currentStreak.count} ${stats.currentStreak.type || ''}`} />
-          <StatTile label="Total P&L" value={stats.totalPnl.toFixed(2)} deltaGood={stats.totalPnl >= 0} />
+          <StatTile label="Total trades" value={stats.totalTrades} icon="🔁" iconColor="var(--series-violet)" />
+          <StatTile label="Win rate" value={`${stats.winRate}%`} icon="🎯" iconColor="var(--series-blue)" />
+          <StatTile
+            label="Current streak"
+            value={`${stats.currentStreak.count} ${stats.currentStreak.type || ''}`}
+            icon={stats.currentStreak.type === 'WON' ? '🔥' : '❄️'}
+            iconColor={stats.currentStreak.type === 'WON' ? 'var(--status-good)' : 'var(--status-critical)'}
+          />
+          <StatTile
+            label="Total P&L"
+            value={stats.totalPnl.toFixed(2)}
+            deltaGood={stats.totalPnl >= 0}
+            icon="💰"
+            iconColor={stats.totalPnl >= 0 ? 'var(--status-good)' : 'var(--status-critical)'}
+          />
         </section>
       )}
 
@@ -37,7 +48,7 @@ export default function TradeHistory() {
           Loading…
         </p>
       ) : (
-        <div className="rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}>
+        <div className="card-hover rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
           <TradeTable trades={trades} />
         </div>
       )}

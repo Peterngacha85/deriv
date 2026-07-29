@@ -10,8 +10,8 @@ export default function WinRateMeter({ winRate, totalTrades }) {
 
   return (
     <div
-      className="rounded-xl p-4 flex flex-col items-center gap-3"
-      style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}
+      className="card-hover rounded-xl p-4 flex flex-col items-center gap-3"
+      style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}
     >
       <span className="text-xs self-start" style={{ color: 'var(--text-secondary)' }}>
         Win rate

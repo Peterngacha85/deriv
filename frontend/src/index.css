@@ -113,3 +113,24 @@ body {
 .tabular {
   font-variant-numeric: tabular-nums;
 }
+
+.card-hover {
+  box-shadow: var(--shadow-card);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(11, 11, 11, 0.1), 0 2px 6px rgba(11, 11, 11, 0.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) .card-hover:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+}
+:root[data-theme="dark"] .card-hover:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.table-row-hover:hover {
+  background: var(--surface-2);
+}

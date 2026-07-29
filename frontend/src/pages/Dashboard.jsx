@@ -68,13 +68,15 @@ export default function Dashboard() {
   return (
     <div className="p-6 flex flex-col gap-8 max-w-6xl mx-auto w-full">
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatTile label="Symbols tracked" value={symbols.length} />
-        <StatTile label="Total trades" value={tradeStats?.totalTrades ?? 0} />
+        <StatTile label="Symbols tracked" value={symbols.length} icon="🌐" iconColor="var(--series-blue)" />
+        <StatTile label="Total trades" value={tradeStats?.totalTrades ?? 0} icon="🔁" iconColor="var(--series-violet)" />
         <StatTile
           label="Total P&L"
           value={`${tradeStats?.totalPnl?.toFixed?.(2) ?? '0.00'}`}
           delta={tradeStats?.totalPnl !== undefined ? `${tradeStats.totalPnl >= 0 ? '+' : ''}${tradeStats.totalPnl.toFixed(2)}` : undefined}
           deltaGood={tradeStats?.totalPnl >= 0}
+          icon="💰"
+          iconColor={tradeStats?.totalPnl >= 0 ? 'var(--status-good)' : 'var(--status-critical)'}
         />
       </section>
 
@@ -100,7 +102,7 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
-        <div className="rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}>
+        <div className="card-hover rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
           <PriceChart candles={candles} symbol={selectedSymbol} />
         </div>
       </section>
@@ -137,7 +139,7 @@ export default function Dashboard() {
           <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
             Digit analysis — {selectedSymbol}
           </h2>
-          <div className="rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}>
+          <div className="card-hover rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
             <DigitFace analysis={digits} symbol={selectedSymbol} />
             <div className="pt-2 mt-2" style={{ borderTop: '1px solid var(--border)' }}>
               <DigitChart analysis={digits} />
@@ -150,7 +152,7 @@ export default function Dashboard() {
         <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
           Recent trades
         </h2>
-        <div className="rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}>
+        <div className="card-hover rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
           <TradeTable trades={recentTrades} />
         </div>
       </section>

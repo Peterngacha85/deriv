@@ -21,12 +21,11 @@ export default function SignalCard({ signal }) {
 
   return (
     <div
-      className="rounded-xl p-4 flex flex-col gap-3"
+      className="card-hover rounded-xl p-4 flex flex-col gap-3"
       style={{
         background: accent.wash,
         border: '1px solid var(--border)',
-        borderLeft: `4px solid ${accent.border}`,
-        boxShadow: 'var(--shadow-card)'
+        borderLeft: `4px solid ${accent.border}`
       }}
     >
       <div className="flex items-center justify-between">
