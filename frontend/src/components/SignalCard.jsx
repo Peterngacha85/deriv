@@ -3,6 +3,12 @@ import StatusBadge from './StatusBadge';
 
 const TYPE_STATUS = { BUY: 'good', SELL: 'critical', HOLD: 'neutral' };
 
+const ACCENT = {
+  BUY: { border: 'var(--status-good)', wash: 'color-mix(in srgb, var(--status-good) 6%, var(--surface-1))' },
+  SELL: { border: 'var(--status-critical)', wash: 'color-mix(in srgb, var(--status-critical) 6%, var(--surface-1))' },
+  HOLD: { border: 'var(--border)', wash: 'var(--surface-1)' }
+};
+
 function formatPrice(value) {
   if (value === undefined || value === null) return '—';
   return value.toLocaleString(undefined, { maximumFractionDigits: 4 });
@@ -11,11 +17,17 @@ function formatPrice(value) {
 export default function SignalCard({ signal }) {
   if (!signal) return null;
   const { symbol, type, confidence, directionLabel, priceAtSignal, stopLoss, takeProfit, indicators } = signal;
+  const accent = ACCENT[type] || ACCENT.HOLD;
 
   return (
     <div
       className="rounded-xl p-4 flex flex-col gap-3"
-      style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}
+      style={{
+        background: accent.wash,
+        border: '1px solid var(--border)',
+        borderLeft: `4px solid ${accent.border}`,
+        boxShadow: 'var(--shadow-card)'
+      }}
     >
       <div className="flex items-center justify-between">
         <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
