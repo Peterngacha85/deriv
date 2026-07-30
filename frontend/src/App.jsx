@@ -3,6 +3,7 @@ import { MarketProvider } from './context/MarketContext';
 import Header from './layout/Header';
 import Sidebar from './layout/Sidebar';
 import BottomNav from './layout/BottomNav';
+import Footer from './layout/Footer';
 import NotificationCenter from './components/NotificationCenter';
 import Dashboard from './pages/Dashboard';
 import SignalHistory from './pages/SignalHistory';
@@ -26,6 +27,7 @@ export default function App() {
                 <Route path="/backtest" element={<Backtest />} />
                 <Route path="/settings" element={<Settings />} />
               </Routes>
+              <Footer />
             </main>
           </div>
           <BottomNav />
