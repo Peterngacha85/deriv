@@ -14,25 +14,35 @@ function formatPrice(value) {
   return value.toLocaleString(undefined, { maximumFractionDigits: 4 });
 }
 
-export default function SignalCard({ signal }) {
+export default function SignalCard({ signal, featured = false }) {
   if (!signal) return null;
   const { symbol, type, confidence, directionLabel, priceAtSignal, stopLoss, takeProfit, indicators } = signal;
   const accent = ACCENT[type] || ACCENT.HOLD;
+  const isHold = type === 'HOLD';
 
   return (
     <div
       className="card-hover rounded-xl p-4 flex flex-col gap-3"
       style={{
         background: accent.wash,
-        border: '1px solid var(--border)',
-        borderLeft: `4px solid ${accent.border}`
+        border: featured ? '1px solid var(--brand)' : '1px solid var(--border)',
+        borderLeft: `4px solid ${accent.border}`,
+        opacity: isHold ? 0.7 : 1
       }}
     >
       <div className="flex items-center justify-between">
-        <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+        <span className="font-semibold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
           {symbol}
+          {featured && (
+            <span
+              className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full"
+              style={{ color: 'var(--brand)', background: 'color-mix(in srgb, var(--brand) 14%, transparent)' }}
+            >
+              Top pick
+            </span>
+          )}
         </span>
-        <StatusBadge status={TYPE_STATUS[type] || 'neutral'} label={type} />
+        <StatusBadge status={TYPE_STATUS[type] || 'neutral'} label={isHold ? 'Skip — HOLD' : type} />
       </div>
 
       <Meter label="Confidence" valuePct={confidence} displayValue={`${confidence}%`} color="var(--series-blue)" />

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useMarket } from '../context/MarketContext';
-import { getChart, getDigits } from '../services/api';
+import { getChart, getDigits, getSettings } from '../services/api';
 import StatTile from '../components/StatTile';
 import SignalCard from '../components/SignalCard';
 import VolatilityCard from '../components/VolatilityCard';
@@ -9,8 +9,10 @@ import DigitChart from '../components/DigitChart';
 import DigitFace from '../components/DigitFace';
 import PriceChart from '../components/PriceChart';
 import TradeTable from '../components/TradeTable';
+import FeaturedTrade from '../components/FeaturedTrade';
 
 const CHART_POLL_MS = 15000;
+const MIN_TRADES_FOR_WIN_RATE = 3;
 
 export default function Dashboard() {
   const { snapshot, loading, error } = useMarket();
@@ -18,6 +20,13 @@ export default function Dashboard() {
   const [selectedSymbol, setSelectedSymbol] = useState(null);
   const [candles, setCandles] = useState([]);
   const [digits, setDigits] = useState(null);
+  const [riskPercentage, setRiskPercentage] = useState(null);
+
+  useEffect(() => {
+    getSettings()
+      .then((s) => setRiskPercentage(s.riskPercentage))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!selectedSymbol && symbols.length > 0) setSelectedSymbol(symbols[0]);
@@ -63,7 +72,38 @@ export default function Dashboard() {
     );
   }
 
-  const { signals = [], volatility = [], tradeStats, recentTrades = [] } = snapshot || {};
+  const { signals = [], volatility = [], tradeStats, recentTrades = [], balance } = snapshot || {};
+
+  const topSignal = [...signals]
+    .filter((s) => s.type !== 'HOLD')
+    .sort((a, b) => b.confidence - a.confidence)[0] || null;
+
+  const MIN_SENSIBLE_STAKE = 0.5; // below this, "recommended stake" isn't actionable — flag it instead
+  let stake = null;
+  let stakeTooLow = false;
+  if (topSignal && balance?.balance !== undefined && riskPercentage !== null) {
+    const computed = Math.round(((balance.balance * riskPercentage) / 100) * 100) / 100;
+    if (computed < MIN_SENSIBLE_STAKE) {
+      stakeTooLow = true;
+    } else {
+      stake = computed;
+    }
+  }
+
+  const topSignalVolatility = topSignal ? volatility.find((v) => v.symbol === topSignal.symbol) : null;
+
+  let topSignalWinRate = null;
+  if (topSignal) {
+    const symbolTrades = recentTrades.filter((t) => t.symbol === topSignal.symbol);
+    if (symbolTrades.length >= MIN_TRADES_FOR_WIN_RATE) {
+      const wins = symbolTrades.filter((t) => t.result === 'WON').length;
+      topSignalWinRate = {
+        wins,
+        total: symbolTrades.length,
+        rate: Math.round((wins / symbolTrades.length) * 1000) / 10
+      };
+    }
+  }
 
   return (
     <div className="p-6 flex flex-col gap-8 max-w-6xl mx-auto w-full">
@@ -75,6 +115,15 @@ export default function Dashboard() {
           Having trouble reaching the backend — showing the last known data. Retrying…
         </div>
       )}
+
+      <FeaturedTrade
+        signal={topSignal}
+        stake={stake}
+        stakeTooLow={stakeTooLow}
+        winRate={topSignalWinRate}
+        volatility={topSignalVolatility}
+      />
+
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatTile label="Symbols tracked" value={symbols.length} icon="🌐" iconColor="var(--series-blue)" />
         <StatTile label="Total trades" value={tradeStats?.totalTrades ?? 0} icon="🔁" iconColor="var(--series-violet)" />
@@ -117,11 +166,11 @@ export default function Dashboard() {
 
       <section>
         <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
-          Signals
+          All markets
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {signals.map((s) => (
-            <SignalCard key={s.symbol} signal={s} />
+            <SignalCard key={s.symbol} signal={s} featured={topSignal?.symbol === s.symbol} />
           ))}
         </div>
       </section>
