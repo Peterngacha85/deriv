@@ -32,30 +32,30 @@ export default function FeaturedTrade({ signal, stake, stakeTooLow, winRate, vol
 
   return (
     <div
-      className="rounded-xl p-5 sm:p-6 flex flex-col gap-5"
-      style={{ background: accent.wash, border: '1px solid var(--border)', borderLeft: `5px solid ${accent.border}` }}
+      className="rounded-2xl p-6 sm:p-8 flex flex-col gap-6"
+      style={{ background: accent.wash, border: '1px solid var(--border)', borderLeft: `6px solid ${accent.border}`, boxShadow: 'var(--shadow-card)' }}
     >
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-          🔥 Top opportunity right now
+        <span className="text-sm font-bold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
+          🎯 Best opportunity right now
         </span>
         <StatusBadge status={TYPE_STATUS[type]} label={`${confidence}% confidence`} />
       </div>
 
       <div className="flex items-baseline gap-3 flex-wrap">
-        <span className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+        <span className="text-3xl sm:text-4xl font-extrabold" style={{ color: 'var(--text-primary)' }}>
           {symbol}
         </span>
-        <span className="text-lg font-semibold" style={{ color: accent.border }}>
+        <span className="text-xl sm:text-2xl font-bold" style={{ color: accent.border }}>
           {action}
         </span>
       </div>
 
-      <div className="rounded-lg p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
-        <div className="text-xs font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>
-          Manual trade checklist
+      <div className="rounded-xl p-5" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
+        <div className="text-sm font-bold mb-3" style={{ color: 'var(--text-secondary)' }}>
+          What to do — step by step
         </div>
-        <ol className="flex flex-col gap-1.5 text-sm" style={{ color: 'var(--text-primary)' }}>
+        <ol className="flex flex-col gap-2.5 text-base" style={{ color: 'var(--text-primary)' }}>
           <li>
             1. Go to Deriv &rarr; <b>{symbol}</b>
           </li>

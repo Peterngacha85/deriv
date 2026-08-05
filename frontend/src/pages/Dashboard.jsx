@@ -17,6 +17,7 @@ import PatternScanner from '../components/PatternScanner';
 import MarketTypeCard from '../components/MarketTypeCard';
 import StrategySelector from '../components/StrategySelector';
 import DerivConnector from '../components/DerivConnector';
+import ExpandableSection from '../components/ExpandableSection';
 
 const CHART_POLL_MS = 15000;
 const MIN_TRADES_FOR_WIN_RATE = 3;
@@ -145,7 +146,7 @@ export default function Dashboard() {
   const selectedVolatility = volatility.find((v) => v.symbol === selectedSymbol) || null;
 
   return (
-    <div className="p-6 flex flex-col gap-8 max-w-6xl mx-auto w-full">
+    <div className="p-6 flex flex-col gap-10 max-w-6xl mx-auto w-full">
       {error && (
         <div
           className="text-sm rounded-lg px-3 py-2.5"
@@ -155,10 +156,11 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Features 10 & 11 — live connection status + stop/refresh/reset controls */}
+      {/* Features 10 & 11 — live connection status + stop/refresh/reset controls. Kept thin so it never competes with the hero. */}
       <StatusBar />
 
-      {/* Top priority: the single best thing to act on right now (features 2, 6, 7 combined) */}
+      {/* ================= PRIORITY 1 — the one thing to act on ================= */}
+      {/* Features 2, 6, 7 combined into a single big, bold, step-by-step hero */}
       <FeaturedTrade
         signal={topSignal}
         stake={stake}
@@ -167,25 +169,10 @@ export default function Dashboard() {
         volatility={topSignalVolatility}
       />
 
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatTile label="Symbols tracked" value={symbols.length} icon="🌐" iconColor="var(--series-blue)" />
-        <StatTile label="Total trades" value={tradeStats?.totalTrades ?? 0} icon="🔁" iconColor="var(--series-violet)" />
-        <StatTile
-          label="Total P&L"
-          value={`${tradeStats?.totalPnl?.toFixed?.(2) ?? '0.00'}`}
-          delta={tradeStats?.totalPnl !== undefined ? `${tradeStats.totalPnl >= 0 ? '+' : ''}${tradeStats.totalPnl.toFixed(2)}` : undefined}
-          deltaGood={tradeStats?.totalPnl >= 0}
-          icon="💰"
-          iconColor={tradeStats?.totalPnl >= 0 ? 'var(--status-good)' : 'var(--status-critical)'}
-        />
-      </section>
-
-      {/* Feature 4 — live tick streamer */}
-      <LiveTicker signals={signals} />
-
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <SectionHeading>Live chart</SectionHeading>
+      {/* ================= PRIORITY 2 — the market, at a glance ================= */}
+      <section className="flex flex-col gap-4">
+        <div className="flex items-center justify-between mb-1">
+          <SectionHeading>Price chart</SectionHeading>
           <div className="flex gap-1">
             {symbols.map((s) => (
               <button
@@ -207,69 +194,71 @@ export default function Dashboard() {
         <div className="card-hover rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
           <PriceChart candles={candles} symbol={selectedSymbol} />
         </div>
+
+        {/* Features 1, 3, 4, 6, 7, 8 — everything that explains WHY, collapsed until asked for */}
+        <ExpandableSection title="More about this market" subtitle="Volatility, digit patterns, live prices, and the numbers behind the signal">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <StatTile label="Symbols tracked" value={symbols.length} icon="🌐" iconColor="var(--series-blue)" />
+            <StatTile label="Total trades" value={tradeStats?.totalTrades ?? 0} icon="🔁" iconColor="var(--series-violet)" />
+            <StatTile
+              label="Total P&L"
+              value={`${tradeStats?.totalPnl?.toFixed?.(2) ?? '0.00'}`}
+              delta={tradeStats?.totalPnl !== undefined ? `${tradeStats.totalPnl >= 0 ? '+' : ''}${tradeStats.totalPnl.toFixed(2)}` : undefined}
+              deltaGood={tradeStats?.totalPnl >= 0}
+              icon="💰"
+              iconColor={tradeStats?.totalPnl >= 0 ? 'var(--status-good)' : 'var(--status-critical)'}
+            />
+          </div>
+
+          <LiveTicker signals={signals} />
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <TradeSetupCard digits={digits} signal={selectedSignal} symbol={selectedSymbol} />
+            <SignalAnalysis signal={selectedSignal} volatility={selectedVolatility} />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <TradeTypeCard digits={digits} signal={selectedSignal} symbol={selectedSymbol} preferredStrategy={strategy} />
+            <PatternScanner digits={digits} symbol={selectedSymbol} />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <VolatilityPanel volatility={volatility} />
+            <div>
+              <SectionHeading>Win rate</SectionHeading>
+              <WinRateMeter winRate={tradeStats?.winRate ?? 0} totalTrades={tradeStats?.totalTrades ?? 0} />
+            </div>
+            <MarketTypeCard symbol={selectedSymbol} symbols={symbols} />
+          </div>
+        </ExpandableSection>
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Feature 7 — digit + prediction + confidence combined */}
-        <TradeSetupCard digits={digits} signal={selectedSignal} symbol={selectedSymbol} />
-        {/* Feature 6 — which indicators match / differ for this signal */}
-        <SignalAnalysis signal={selectedSignal} volatility={selectedVolatility} />
-      </section>
-
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Feature 2 — recommended trade type */}
-        <TradeTypeCard digits={digits} signal={selectedSignal} symbol={selectedSymbol} preferredStrategy={strategy} />
-        {/* Feature 3 — matches signal scanner */}
-        <PatternScanner digits={digits} symbol={selectedSymbol} />
-      </section>
-
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          {/* Feature 1 — volatility across every market */}
-          <VolatilityPanel volatility={volatility} />
-        </div>
-
-        <div className="lg:col-span-1">
-          <SectionHeading>Win rate</SectionHeading>
-          <WinRateMeter winRate={tradeStats?.winRate ?? 0} totalTrades={tradeStats?.totalTrades ?? 0} />
-        </div>
-
-        <div className="lg:col-span-1">
-          {/* Feature 8 — market type */}
-          <MarketTypeCard symbol={selectedSymbol} symbols={symbols} />
-        </div>
-      </section>
-
-      {/* Feature 9 — strategy selector */}
-      <section>
+      {/* ================= PRIORITY 3 — reference info, always reachable ================= */}
+      <section className="flex flex-col gap-8 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
+        {/* Feature 9 — strategy selector */}
         <StrategySelector value={strategy} onChange={setStrategy} />
-      </section>
 
-      <section>
-        <SectionHeading>Recent trades</SectionHeading>
-        <div className="card-hover rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
-          <TradeTable trades={recentTrades} />
+        <div>
+          <SectionHeading>Recent trades</SectionHeading>
+          <div className="card-hover rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
+            <TradeTable trades={recentTrades} />
+          </div>
         </div>
-      </section>
 
-      <section>
-        <SectionHeading>All markets</SectionHeading>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {signals.map((s) => (
-            <SignalCard key={s.symbol} signal={s} featured={topSignal?.symbol === s.symbol} />
-          ))}
+        <div>
+          <SectionHeading>All markets</SectionHeading>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {signals.map((s) => (
+              <SignalCard key={s.symbol} signal={s} featured={topSignal?.symbol === s.symbol} />
+            ))}
+          </div>
         </div>
-      </section>
 
-      {/* Feature 12 — Deriv connector detail; advanced/reference info, tucked away but not hidden */}
-      <details className="rounded-xl" style={{ border: '1px solid var(--border)' }}>
-        <summary className="px-4 py-3 text-sm font-medium cursor-pointer" style={{ color: 'var(--text-secondary)' }}>
-          Technical details (advanced)
-        </summary>
-        <div className="p-4 pt-0">
+        {/* Feature 12 — Deriv connector detail; advanced/reference info, tucked away but not hidden */}
+        <ExpandableSection title="Technical details" subtitle="Deriv connection, account, and response time — for troubleshooting">
           <DerivConnector />
-        </div>
-      </details>
+        </ExpandableSection>
+      </section>
     </div>
   );
 }
