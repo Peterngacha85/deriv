@@ -30,7 +30,10 @@ function buildChecks(signal, volatility) {
 export default function SignalAnalysis({ signal, volatility }) {
   if (!signal) {
     return (
-      <div className="rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
+      <div
+        className="rounded-xl p-4"
+        style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderLeft: '4px solid var(--series-violet)' }}
+      >
         <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
           No active signal to analyze right now.
         </span>
@@ -42,7 +45,10 @@ export default function SignalAnalysis({ signal, volatility }) {
   const matchCount = checks.filter((c) => c.match).length;
 
   return (
-    <div className="rounded-xl p-4 flex flex-col gap-3" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
+    <div
+      className="rounded-xl p-4 flex flex-col gap-3"
+      style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderLeft: '4px solid var(--series-violet)' }}
+    >
       <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
         Signal check — {signal.symbol}
       </span>

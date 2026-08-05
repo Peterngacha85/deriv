@@ -5,7 +5,7 @@ export default function StatTile({ label, value, delta, deltaGood, sublabel, ico
   return (
     <div
       className="card-hover rounded-xl p-4 flex flex-col gap-1"
-      style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}
+      style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderLeft: `4px solid ${iconColor}` }}
     >
       <div className="flex items-center gap-2.5">
         {icon && (

@@ -9,7 +9,10 @@ const STRATEGIES = [
 /** Feature 9 — lets the user focus the Trade Type card (feature 2) on one pattern instead of the auto pick. */
 export default function StrategySelector({ value, onChange }) {
   return (
-    <div className="rounded-xl p-4 flex flex-col gap-2.5" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
+    <div
+      className="rounded-xl p-4 flex flex-col gap-2.5"
+      style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderLeft: '4px solid var(--series-magenta)' }}
+    >
       <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
         Select your strategy
       </span>

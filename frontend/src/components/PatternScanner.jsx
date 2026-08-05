@@ -2,7 +2,10 @@
 export default function PatternScanner({ digits, symbol }) {
   if (!digits || !digits.frequency) {
     return (
-      <div className="rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
+      <div
+        className="rounded-xl p-4"
+        style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderLeft: '4px solid var(--series-aqua)' }}
+      >
         <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
           Waiting for digit data…
         </span>
@@ -15,7 +18,10 @@ export default function PatternScanner({ digits, symbol }) {
   const leader = top[0];
 
   return (
-    <div className="rounded-xl p-4 flex flex-col gap-3" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
+    <div
+      className="rounded-xl p-4 flex flex-col gap-3"
+      style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderLeft: '4px solid var(--series-aqua)' }}
+    >
       <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
         Pattern matches — {symbol}
       </span>

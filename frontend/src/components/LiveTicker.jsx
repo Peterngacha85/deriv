@@ -19,7 +19,7 @@ export default function LiveTicker({ signals }) {
   return (
     <div
       className="rounded-xl px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-2"
-      style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}
+      style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderLeft: '4px solid var(--series-blue)' }}
     >
       <span className="inline-flex items-center gap-1.5 text-xs font-semibold shrink-0" style={{ color: 'var(--status-good)' }}>
         <span aria-hidden="true" className="inline-block rounded-full" style={{ width: '7px', height: '7px', background: 'var(--status-good)' }} />

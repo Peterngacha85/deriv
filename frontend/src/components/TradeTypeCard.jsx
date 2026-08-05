@@ -61,7 +61,10 @@ export default function TradeTypeCard({ digits, signal, symbol, preferredStrateg
   const rec = pickRecommendation(digits, signal, preferredStrategy);
 
   return (
-    <div className="rounded-xl p-4 flex flex-col gap-2.5" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
+    <div
+      className="rounded-xl p-4 flex flex-col gap-2.5"
+      style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderLeft: '4px solid var(--series-aqua)' }}
+    >
       <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
         Trade type — {symbol}
       </span>

@@ -4,7 +4,10 @@ import StatusBadge from './StatusBadge';
 export default function TradeSetupCard({ digits, signal, symbol }) {
   if (!digits || !digits.lastDigits || digits.lastDigits.length === 0) {
     return (
-      <div className="rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
+      <div
+        className="rounded-xl p-4"
+        style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderLeft: '4px solid var(--series-violet)' }}
+      >
         <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
           Waiting for digit data…
         </span>
@@ -21,7 +24,10 @@ export default function TradeSetupCard({ digits, signal, symbol }) {
   const ready = signal && signal.type !== 'HOLD';
 
   return (
-    <div className="rounded-xl p-4 flex flex-col gap-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
+    <div
+      className="rounded-xl p-4 flex flex-col gap-4"
+      style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderLeft: '4px solid var(--series-violet)' }}
+    >
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
           Your trade setup — {symbol}
