@@ -59,12 +59,29 @@ export default function PriceChart({ candles, symbol }) {
     chartRef.current?.timeScale().fitContent();
   }, [candles]);
 
+  const first = candles?.[0];
+  const last = candles?.[candles.length - 1];
+  let trend = null;
+  if (first && last && candles.length > 1) {
+    const changePct = ((last.close - first.close) / first.close) * 100;
+    if (changePct > 0.02) trend = { label: 'UPTREND', arrow: '↗️', color: 'var(--status-good)' };
+    else if (changePct < -0.02) trend = { label: 'DOWNTREND', arrow: '↘️', color: 'var(--status-critical)' };
+    else trend = { label: 'SIDEWAYS', arrow: '→', color: 'var(--text-muted)' };
+  }
+
   return (
     <div>
-      <div className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
-        {symbol} · 3-minute candles
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+          {symbol} · 3-minute candles
+        </span>
+        {trend && (
+          <span className="text-xs font-semibold" style={{ color: trend.color }}>
+            {trend.arrow} {trend.label}
+          </span>
+        )}
       </div>
-      <div ref={containerRef} style={{ height: '320px', width: '100%' }} />
+      <div ref={containerRef} style={{ height: '420px', width: '100%' }} />
     </div>
   );
 }

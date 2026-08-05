@@ -3,16 +3,32 @@ import { useMarket } from '../context/MarketContext';
 import { getChart, getDigits, getSettings } from '../services/api';
 import StatTile from '../components/StatTile';
 import SignalCard from '../components/SignalCard';
-import VolatilityCard from '../components/VolatilityCard';
+import VolatilityPanel from '../components/VolatilityPanel';
 import WinRateMeter from '../components/WinRateMeter';
-import DigitChart from '../components/DigitChart';
-import DigitFace from '../components/DigitFace';
 import PriceChart from '../components/PriceChart';
 import TradeTable from '../components/TradeTable';
 import FeaturedTrade from '../components/FeaturedTrade';
+import StatusBar from '../components/StatusBar';
+import LiveTicker from '../components/LiveTicker';
+import TradeSetupCard from '../components/TradeSetupCard';
+import SignalAnalysis from '../components/SignalAnalysis';
+import TradeTypeCard from '../components/TradeTypeCard';
+import PatternScanner from '../components/PatternScanner';
+import MarketTypeCard from '../components/MarketTypeCard';
+import StrategySelector from '../components/StrategySelector';
+import DerivConnector from '../components/DerivConnector';
 
 const CHART_POLL_MS = 15000;
 const MIN_TRADES_FOR_WIN_RATE = 3;
+const STRATEGY_STORAGE_KEY = 'dautoTraders.strategy';
+
+function SectionHeading({ children }) {
+  return (
+    <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
+      {children}
+    </h2>
+  );
+}
 
 export default function Dashboard() {
   const { snapshot, loading, error } = useMarket();
@@ -21,6 +37,13 @@ export default function Dashboard() {
   const [candles, setCandles] = useState([]);
   const [digits, setDigits] = useState(null);
   const [riskPercentage, setRiskPercentage] = useState(null);
+  const [strategy, setStrategy] = useState(() => {
+    try {
+      return localStorage.getItem(STRATEGY_STORAGE_KEY) || null;
+    } catch {
+      return null;
+    }
+  });
 
   useEffect(() => {
     getSettings()
@@ -29,8 +52,21 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    if (!selectedSymbol && symbols.length > 0) setSelectedSymbol(symbols[0]);
-  }, [symbols, selectedSymbol]);
+    try {
+      localStorage.setItem(STRATEGY_STORAGE_KEY, strategy ?? '');
+    } catch {
+      // localStorage unavailable — strategy choice just won't persist across reloads
+    }
+  }, [strategy]);
+
+  // Default to whichever market currently has the best opportunity, so the chart
+  // and analysis panels open already pointed at what the hero card is showing.
+  useEffect(() => {
+    if (selectedSymbol || symbols.length === 0) return;
+    const signals = snapshot?.signals || [];
+    const best = [...signals].filter((s) => s.type !== 'HOLD').sort((a, b) => b.confidence - a.confidence)[0];
+    setSelectedSymbol(best?.symbol || symbols[0]);
+  }, [symbols, selectedSymbol, snapshot]);
 
   useEffect(() => {
     if (!selectedSymbol) return undefined;
@@ -105,6 +141,9 @@ export default function Dashboard() {
     }
   }
 
+  const selectedSignal = signals.find((s) => s.symbol === selectedSymbol) || null;
+  const selectedVolatility = volatility.find((v) => v.symbol === selectedSymbol) || null;
+
   return (
     <div className="p-6 flex flex-col gap-8 max-w-6xl mx-auto w-full">
       {error && (
@@ -116,6 +155,10 @@ export default function Dashboard() {
         </div>
       )}
 
+      {/* Features 10 & 11 — live connection status + stop/refresh/reset controls */}
+      <StatusBar />
+
+      {/* Top priority: the single best thing to act on right now (features 2, 6, 7 combined) */}
       <FeaturedTrade
         signal={topSignal}
         stake={stake}
@@ -137,11 +180,12 @@ export default function Dashboard() {
         />
       </section>
 
+      {/* Feature 4 — live tick streamer */}
+      <LiveTicker signals={signals} />
+
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-            Live chart
-          </h2>
+          <SectionHeading>Live chart</SectionHeading>
           <div className="flex gap-1">
             {symbols.map((s) => (
               <button
@@ -159,15 +203,57 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
+        {/* Feature 5 — big, clear candlestick chart with trend status */}
         <div className="card-hover rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
           <PriceChart candles={candles} symbol={selectedSymbol} />
         </div>
       </section>
 
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Feature 7 — digit + prediction + confidence combined */}
+        <TradeSetupCard digits={digits} signal={selectedSignal} symbol={selectedSymbol} />
+        {/* Feature 6 — which indicators match / differ for this signal */}
+        <SignalAnalysis signal={selectedSignal} volatility={selectedVolatility} />
+      </section>
+
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Feature 2 — recommended trade type */}
+        <TradeTypeCard digits={digits} signal={selectedSignal} symbol={selectedSymbol} preferredStrategy={strategy} />
+        {/* Feature 3 — matches signal scanner */}
+        <PatternScanner digits={digits} symbol={selectedSymbol} />
+      </section>
+
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          {/* Feature 1 — volatility across every market */}
+          <VolatilityPanel volatility={volatility} />
+        </div>
+
+        <div className="lg:col-span-1">
+          <SectionHeading>Win rate</SectionHeading>
+          <WinRateMeter winRate={tradeStats?.winRate ?? 0} totalTrades={tradeStats?.totalTrades ?? 0} />
+        </div>
+
+        <div className="lg:col-span-1">
+          {/* Feature 8 — market type */}
+          <MarketTypeCard symbol={selectedSymbol} symbols={symbols} />
+        </div>
+      </section>
+
+      {/* Feature 9 — strategy selector */}
       <section>
-        <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
-          All markets
-        </h2>
+        <StrategySelector value={strategy} onChange={setStrategy} />
+      </section>
+
+      <section>
+        <SectionHeading>Recent trades</SectionHeading>
+        <div className="card-hover rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
+          <TradeTable trades={recentTrades} />
+        </div>
+      </section>
+
+      <section>
+        <SectionHeading>All markets</SectionHeading>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {signals.map((s) => (
             <SignalCard key={s.symbol} signal={s} featured={topSignal?.symbol === s.symbol} />
@@ -175,44 +261,15 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 flex flex-col gap-3">
-          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-            Volatility
-          </h2>
-          {volatility.map((v) => (
-            <VolatilityCard key={v.symbol} snapshot={v} />
-          ))}
+      {/* Feature 12 — Deriv connector detail; advanced/reference info, tucked away but not hidden */}
+      <details className="rounded-xl" style={{ border: '1px solid var(--border)' }}>
+        <summary className="px-4 py-3 text-sm font-medium cursor-pointer" style={{ color: 'var(--text-secondary)' }}>
+          Technical details (advanced)
+        </summary>
+        <div className="p-4 pt-0">
+          <DerivConnector />
         </div>
-
-        <div className="lg:col-span-1">
-          <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
-            Win rate
-          </h2>
-          <WinRateMeter winRate={tradeStats?.winRate ?? 0} totalTrades={tradeStats?.totalTrades ?? 0} />
-        </div>
-
-        <div className="lg:col-span-1">
-          <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
-            Digit analysis — {selectedSymbol}
-          </h2>
-          <div className="card-hover rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
-            <DigitFace analysis={digits} symbol={selectedSymbol} />
-            <div className="pt-2 mt-2" style={{ borderTop: '1px solid var(--border)' }}>
-              <DigitChart analysis={digits} />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
-          Recent trades
-        </h2>
-        <div className="card-hover rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
-          <TradeTable trades={recentTrades} />
-        </div>
-      </section>
+      </details>
     </div>
   );
 }

@@ -49,7 +49,11 @@ export function MarketProvider({ children }) {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [alerts, setAlerts] = useState([]);
+  const [paused, setPaused] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [latencyMs, setLatencyMs] = useState(null);
   const timerRef = useRef(null);
+  const pausedRef = useRef(false);
   const lastSignalTimestamps = useRef(new Map());
   const lastVolatilityLevels = useRef(new Map());
   const isFirstSnapshot = useRef(true);
@@ -61,7 +65,9 @@ export function MarketProvider({ children }) {
   useEffect(() => {
     let cancelled = false;
 
-    async function poll() {
+    async function poll({ force = false } = {}) {
+      if (pausedRef.current && !force) return;
+      const startedAt = Date.now();
       try {
         let data;
         try {
@@ -73,6 +79,7 @@ export function MarketProvider({ children }) {
           data = await getDashboardSnapshot();
         }
         if (!cancelled) {
+          setLatencyMs(Date.now() - startedAt);
           // Skip alerting on the very first snapshot — everything would look "new"
           // against empty tracking maps, flooding the UI on page load.
           if (!isFirstSnapshot.current) {
@@ -86,6 +93,7 @@ export function MarketProvider({ children }) {
           }
           setSnapshot(data);
           setError(null);
+          setLastUpdated(Date.now());
         }
       } catch (err) {
         if (!cancelled) setError(err.message);
@@ -102,8 +110,52 @@ export function MarketProvider({ children }) {
     };
   }, []);
 
+  const togglePause = useCallback(() => {
+    pausedRef.current = !pausedRef.current;
+    setPaused(pausedRef.current);
+  }, []);
+
+  const refreshNow = useCallback(async () => {
+    setLoading((prev) => (snapshot ? prev : true));
+    const startedAt = Date.now();
+    try {
+      const data = await getDashboardSnapshot();
+      setLatencyMs(Date.now() - startedAt);
+      const newAlerts = detectAlerts(data, lastSignalTimestamps, lastVolatilityLevels);
+      if (newAlerts.length > 0) setAlerts((prev) => [...newAlerts, ...prev].slice(0, MAX_ALERTS));
+      setSnapshot(data);
+      setError(null);
+      setLastUpdated(Date.now());
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [snapshot]);
+
+  const reset = useCallback(() => {
+    pausedRef.current = false;
+    setPaused(false);
+    setAlerts([]);
+    refreshNow();
+  }, [refreshNow]);
+
   return (
-    <MarketContext.Provider value={{ snapshot, error, loading, alerts, dismissAlert }}>
+    <MarketContext.Provider
+      value={{
+        snapshot,
+        error,
+        loading,
+        alerts,
+        dismissAlert,
+        paused,
+        togglePause,
+        refreshNow,
+        reset,
+        lastUpdated,
+        latencyMs
+      }}
+    >
       {children}
     </MarketContext.Provider>
   );
