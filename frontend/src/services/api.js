@@ -13,6 +13,8 @@ export const getChart = (symbol, minutes = 100) =>
 
 export const getDigits = (market) => client.get('/market/digits', { params: { market } }).then((r) => r.data);
 
+export const getLatestTick = (symbol) => client.get(`/market/tick/${symbol}`).then((r) => r.data);
+
 export const getTradeHistory = (params = {}) => client.get('/trades/history', { params }).then((r) => r.data);
 
 export const getTradeStats = () => client.get('/trades/stats').then((r) => r.data);

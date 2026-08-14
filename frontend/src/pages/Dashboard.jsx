@@ -10,6 +10,7 @@ import TradeTable from '../components/TradeTable';
 import FeaturedTrade from '../components/FeaturedTrade';
 import StatusBar from '../components/StatusBar';
 import LiveTicker from '../components/LiveTicker';
+import VolatilityIndexTracker from '../components/VolatilityIndexTracker';
 import TradeSetupCard from '../components/TradeSetupCard';
 import SignalAnalysis from '../components/SignalAnalysis';
 import TradeTypeCard from '../components/TradeTypeCard';
@@ -171,28 +172,13 @@ export default function Dashboard() {
 
       {/* ================= PRIORITY 2 — the market, at a glance ================= */}
       <section className="flex flex-col gap-4">
-        <div className="flex items-center justify-between mb-1">
-          <SectionHeading>Price chart</SectionHeading>
-          <div className="flex gap-1">
-            {symbols.map((s) => (
-              <button
-                key={s}
-                onClick={() => setSelectedSymbol(s)}
-                className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-                style={{
-                  background: s === selectedSymbol ? 'var(--brand)' : 'transparent',
-                  color: s === selectedSymbol ? '#fff' : 'var(--text-secondary)',
-                  border: s === selectedSymbol ? '1px solid var(--brand)' : '1px solid var(--border)'
-                }}
-              >
-                {s}
-              </button>
-            ))}
+        <SectionHeading>Price chart</SectionHeading>
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 items-start">
+          <VolatilityIndexTracker symbols={symbols} selected={selectedSymbol} onSelect={setSelectedSymbol} />
+          {/* Feature 5 — big, clear candlestick chart with trend status */}
+          <div className="card-hover rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
+            <PriceChart candles={candles} symbol={selectedSymbol} />
           </div>
-        </div>
-        {/* Feature 5 — big, clear candlestick chart with trend status */}
-        <div className="card-hover rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
-          <PriceChart candles={candles} symbol={selectedSymbol} />
         </div>
       </section>
 
