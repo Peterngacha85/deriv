@@ -15,6 +15,8 @@ export const getDigits = (market) => client.get('/market/digits', { params: { ma
 
 export const getLatestTick = (symbol) => client.get(`/market/tick/${symbol}`).then((r) => r.data);
 
+export const subscribeSymbol = (symbol) => client.post('/market/subscribe', { symbol }).then((r) => r.data);
+
 export const getTradeHistory = (params = {}) => client.get('/trades/history', { params }).then((r) => r.data);
 
 export const getTradeStats = () => client.get('/trades/stats').then((r) => r.data);

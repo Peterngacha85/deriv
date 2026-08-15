@@ -174,7 +174,7 @@ export default function Dashboard() {
       <section className="flex flex-col gap-4">
         <SectionHeading>Price chart</SectionHeading>
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 items-start">
-          <VolatilityIndexTracker symbols={symbols} selected={selectedSymbol} onSelect={setSelectedSymbol} />
+          <VolatilityIndexTracker selected={selectedSymbol} onSelect={setSelectedSymbol} />
           {/* Feature 5 — big, clear candlestick chart with trend status */}
           <div className="card-hover rounded-xl p-4" style={{ background: 'var(--surface-1)', border: '1px solid var(--border)' }}>
             <PriceChart candles={candles} symbol={selectedSymbol} />
